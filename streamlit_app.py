@@ -21,24 +21,12 @@ def classify_comment(comment, category, client):
     # Extract the response
     classification_and_reason = response.choices[0].message.content.strip()
 
-    # Determine if the comment is related to the specified category
+    # Determine if the comment is bad and related to the selected category
     is_bad = "bad" in classification_and_reason.lower()
     related_to_category = category.lower() in classification_and_reason.lower()
 
-    # Format the result based on whether it’s within the selected category
-    result = classification_and_reason
-    if is_bad:
-        if related_to_category:
-            result += f"\nThis is a bad comment and is related to the '{category}' category."
-        else:
-            result += f"\nThis is a bad comment but is not related to the '{category}' category."
-    else:
-        if related_to_category:
-            result += f"\nThis is a good comment and is related to the '{category}' category."
-        else:
-            result += f"\nThis is a good comment but is not related to the '{category}' category."
-
-    return result
+    # Return the extracted details and formatted response
+    return classification_and_reason, is_bad, related_to_category
 
 
 # Streamlit app title and description
@@ -58,7 +46,7 @@ else:
 
     # Dropdown menu for category selection
     category = st.selectbox(
-        "Select the type of comments to classify:",
+        "Select the type of comments to archive:",
         options=["Body", "Makeup", "Personality", "Fashion", "Performance"],
     ).lower()
 
@@ -72,20 +60,16 @@ else:
             with st.spinner("Classifying comment..."):
                 try:
                     # Get the classification result
-                    result = classify_comment(comment, category, client)
+                    result, is_bad, related_to_category = classify_comment(comment, category, client)
 
-                    # Determine if the comment is bad and related to the selected category
-                    is_bad = "bad" in result.lower()
-                    related_to_category = category.lower() in result.lower()
-
+                    # Display appropriate message based on classification
                     if is_bad and related_to_category:
                         st.error("Comment Archived!")
                     else:
                         st.success("Comment Kept!")
 
                     # Display the classification details
-                    st.write(f"**Result for '{category}' comments:**")
+                    st.write(f"**Detailed Classification for '{category}' comments:**")
                     st.write(result)
                 except Exception as e:
                     st.error(f"An error occurred: {e}")
-
