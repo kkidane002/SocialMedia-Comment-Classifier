@@ -1,56 +1,79 @@
 import streamlit as st
 from openai import OpenAI
 
-# Show title and description.
-st.title("💬 Chatbot")
+# Define a function to classify comments based on a specific category
+def classify_comment(comment, category, client):
+    prompt = (
+        f"As a TikTok comment classifier, focus on classifying '{category}' comments.\n"
+        f"Please determine if the following comment is 'good' or 'bad' in relation to '{category}', and provide a reason:\n\n"
+        f"Comment: '{comment}'\n\n"
+        "Classification and Reason:"
+    )
+
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.2
+    )
+
+    # Extract the response
+    classification_and_reason = response.choices[0].message.content.strip()
+
+    # Determine if the comment is related to the specified category
+    is_bad = "bad" in classification_and_reason.lower()
+    related_to_category = category.lower() in classification_and_reason.lower()
+
+    # Format the result based on whether it’s within the selected category
+    result = classification_and_reason
+    if is_bad:
+        if related_to_category:
+            result += f"\nThis is a bad comment and is related to the '{category}' category."
+        else:
+            result += f"\nThis is a bad comment but is not related to the '{category}' category."
+    else:
+        if related_to_category:
+            result += f"\nThis is a good comment and is related to the '{category}' category."
+        else:
+            result += f"\nThis is a good comment but is not related to the '{category}' category."
+
+    return result
+
+
+# Streamlit app title and description
+st.title("💬 TikTok Comment Classifier")
 st.write(
-    "This is a simple chatbot that uses OpenAI's GPT-3.5 model to generate responses. "
-    "To use this app, you need to provide an OpenAI API key, which you can get [here](https://platform.openai.com/account/api-keys). "
-    "You can also learn how to build this app step by step by [following our tutorial](https://docs.streamlit.io/develop/tutorials/llms/build-conversational-apps)."
+    "This is a chatbot-based app that allows you to classify TikTok comments "
+    "based on a specific category (e.g., body, makeup, personality). "
+    "To use this app, you need an OpenAI API key."
 )
 
-# Ask user for their OpenAI API key via `st.text_input`.
-# Alternatively, you can store the API key in `./.streamlit/secrets.toml` and access it
-# via `st.secrets`, see https://docs.streamlit.io/develop/concepts/connections/secrets-management
+# OpenAI API key input
 openai_api_key = st.text_input("OpenAI API Key", type="password")
 if not openai_api_key:
-    st.info("Please add your OpenAI API key to continue.", icon="🗝️")
+    st.info("Please enter your OpenAI API key to use the app.", icon="🗝️")
 else:
-
-    # Create an OpenAI client.
     client = OpenAI(api_key=openai_api_key)
 
-    # Create a session state variable to store the chat messages. This ensures that the
-    # messages persist across reruns.
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+    # Dropdown menu for category selection
+    category = st.selectbox(
+        "Select the type of comments to classify:",
+        options=["Body", "Makeup", "Personality", "Fashion", "Performance"],
+    ).lower()
 
-    # Display the existing chat messages via `st.chat_message`.
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+    # Text area for comment input
+    comment = st.text_area("Enter the comment to classify:")
 
-    # Create a chat input field to allow the user to enter a message. This will display
-    # automatically at the bottom of the page.
-    if prompt := st.chat_input("What is up?"):
-
-        # Store and display the current prompt.
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
-
-        # Generate a response using the OpenAI API.
-        stream = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": m["role"], "content": m["content"]}
-                for m in st.session_state.messages
-            ],
-            stream=True,
-        )
-
-        # Stream the response to the chat using `st.write_stream`, then store it in 
-        # session state.
-        with st.chat_message("assistant"):
-            response = st.write_stream(stream)
-        st.session_state.messages.append({"role": "assistant", "content": response})
+    if st.button("Classify Comment"):
+        if not category or not comment:
+            st.warning("Please provide both a category and a comment.")
+        else:
+            with st.spinner("Classifying comment..."):
+                try:
+                    result = classify_comment(comment, category, client)
+                    st.success("Classification Complete!")
+                    st.write(f"**Result for '{category}' comments:**")
+                    st.write(result)
+                except Exception as e:
+                    st.error(f"An error occurred: {e}")
