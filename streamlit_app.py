@@ -25,15 +25,16 @@ def classify_comment(comment, category, client):
     is_bad = "bad" in classification_and_reason.lower()
     related_to_category = category.lower() in classification_and_reason.lower()
 
+    # Return the extracted details and formatted response
     return classification_and_reason, is_bad, related_to_category
 
 
 # Streamlit app title and description
 st.title("💬 TikTok Comment Classifier")
 st.write(
-    "This app uses AI to classify TikTok comments based on a specific category "
-    "(e.g., body, makeup, personality). Archive or keep comments based on their classification. "
-    "To use this app, you need an OpenAI API key."
+    "This is a Comment CLassifier Feature on TikTok that allows you to archive TikTok comments"
+    "based on a specific category (e.g., body, makeup, personality). "
+    "To use this feature, you need an OpenAI API key."
 )
 
 # OpenAI API key input
@@ -45,15 +46,15 @@ else:
 
     # Dropdown menu for category selection
     category = st.selectbox(
-        "Select the type of comments to classify:",
+        "Select the type of comments to archive:",
         options=["Body", "Makeup", "Personality", "Fashion", "Performance"],
     ).lower()
 
     # Text area for comment input
-    comment = st.text_area("Enter the comment to classify:")
+    comment = st.text_area("Enter Test Comment to Test Archieve:")
 
     if st.button("Classify Comment"):
-        if not category or not comment.strip():
+        if not category or not comment:
             st.warning("Please provide both a category and a comment.")
         else:
             with st.spinner("Classifying comment..."):
@@ -61,27 +62,15 @@ else:
                     # Get the classification result
                     result, is_bad, related_to_category = classify_comment(comment, category, client)
 
-                    # Logic based on classification and category
+                    # Display appropriate message based on classification
                     if is_bad and related_to_category:
-                        st.error("🚫 Comment Archived!")
-                        action = "Archived"
-                        reason = f"This comment is bad and falls under the selected category: {category.capitalize()}."
-                    elif is_bad and not related_to_category:
-                        st.success("✅ Comment Kept!")
-                        action = "Kept"
-                        reason = f"This comment is bad but not related to the selected category: {category.capitalize()}."
-                    else:  # Good comment, always keep it
-                        st.success("✅ Comment Kept!")
-                        action = "Kept"
-                        reason = f"This comment is good and related to the selected category: {category.capitalize()}."
+                        st.error("Comment Archived!")
+                    else:
+                        st.success("Comment Kept!")
 
-                    # Display the detailed classification
-                    st.write("### Classification Details:")
-                    st.write(f"- **Comment**: {comment}")
-                    st.write(f"- **Category**: {category.capitalize()}")
-                    st.write(f"- **Action**: {action}")
-                    st.write(f"- **Reason**: {reason}")
-                    st.write(f"- **AI Classification**: {result}")
-
+                    # Display the classification details
+                    #st.write(f"**Detailed Classification for '{category}' comments:**")
+                    st.write(result)
                 except Exception as e:
                     st.error(f"An error occurred: {e}")
+
