@@ -65,6 +65,8 @@ else:
                     # Display appropriate message based on classification
                     if not related_to_category:
                         st.success("✅ Comment Kept!")
+                    elif not is_bad:
+                        st.success("✅ Comment Kept!")
                     elif not is_bad and related_to_category:
                         st.success("✅ Comment Kept!")
                     elif not is_bad and not related_to_category:
