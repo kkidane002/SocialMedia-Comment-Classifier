@@ -61,19 +61,27 @@ else:
                     # Get the classification result
                     result, is_bad, related_to_category = classify_comment(comment, category, client)
 
-                    # Determine action based on conditions
+                    # Logic based on classification and category
                     if is_bad and related_to_category:
                         st.error("🚫 Comment Archived!")
                         action = "Archived"
-                    else:
+                        reason = f"This comment is bad and falls under the selected category: {category.capitalize()}."
+                    elif is_bad and not related_to_category:
                         st.success("✅ Comment Kept!")
                         action = "Kept"
+                        reason = f"This comment is bad but not related to the selected category: {category.capitalize()}."
+                    else:  # Good comment, always keep it
+                        st.success("✅ Comment Kept!")
+                        action = "Kept"
+                        reason = f"This comment is good and related to the selected category: {category.capitalize()}."
 
                     # Display the detailed classification
                     st.write("### Classification Details:")
                     st.write(f"- **Comment**: {comment}")
                     st.write(f"- **Category**: {category.capitalize()}")
                     st.write(f"- **Action**: {action}")
-                    st.write(f"- **Reason**: {result}")
+                    st.write(f"- **Reason**: {reason}")
+                    st.write(f"- **AI Classification**: {result}")
+
                 except Exception as e:
                     st.error(f"An error occurred: {e}")
