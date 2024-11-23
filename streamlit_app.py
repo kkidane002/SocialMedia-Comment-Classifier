@@ -30,9 +30,9 @@ def classify_comment(comment, category, client):
 
 
 # Streamlit app title and description
-st.title("💬 TikTok Comment Classifier")
+st.title("💬 Social Media Comment Classifier")
 st.write(
-    "This is a Comment CLassifier Feature on TikTok that allows you to archive TikTok comments"
+    "This is a Comment CLassifier Feature on Social media that allows you to archive bad comments"
     "based on a specific category (e.g., body, makeup, personality). "
     "To use this feature, you need an OpenAI API key."
 )
@@ -51,30 +51,30 @@ else:
     ).lower()
 
     # Text area for comment input
-    comment = st.text_area("Enter Test Comment to Test Archieve:")
+    comment = st.text_area("Enter Sample Comment to Test Archieve:")
 
-    if st.button("Classify Comment"):
+    if st.button("Check Comment"):
         if not category or not comment:
             st.warning("Please provide both a category and a comment.")
         else:
-            with st.spinner("Classifying comment..."):
+            with st.spinner("Checking comment..."):
                 try:
                     # Get the classification result
                     result, is_bad, related_to_category = classify_comment(comment, category, client)
 
                     # Display appropriate message based on classification
                     if not related_to_category:
-                        st.success("Comment Kept!")
+                        st.success("✅ Comment Kept!")
                     elif not is_bad and related_to_category:
-                        st.success("Comment Kept!")
+                        st.success("✅ Comment Kept!")
                     elif not is_bad and not related_to_category:
-                        st.success("Comment Kept!") 
+                        st.success("✅ Comment Kept!") 
                     elif is_bad and not related_to_category:
-                        st.success("Comment Kept!")
+                        st.success("✅ Comment Kept!")
                     elif is_bad and related_to_category:
-                        st.error("Comment Archived!") # Archive only if bad and related to category
+                        st.error("🚫Comment Archived!") # Archive only if bad and related to category
                     else:
-                        st.success("Comment Kept!")
+                        st.success("✅ Comment Kept!")
 
                     # Display the classification details
                     st.write(result)
