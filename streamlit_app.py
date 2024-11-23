@@ -63,7 +63,9 @@ else:
                     result, is_bad, related_to_category = classify_comment(comment, category, client)
 
                     # Display appropriate message based on classification
-                    if not is_bad and related_to_category:
+                    if not related_to_category:
+                        st.success("Comment Kept!")
+                    elif not is_bad and related_to_category:
                         st.success("Comment Kept!")
                     elif not is_bad and not related_to_category:
                         st.success("Comment Kept!") 
