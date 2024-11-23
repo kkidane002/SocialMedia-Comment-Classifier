@@ -64,13 +64,15 @@ else:
 
                     # Display appropriate message based on classification
                     if is_bad and related_to_category:
-                        st.error("Comment Archived!")
+                        st.error("Comment Archived!")  # Archive only if bad and related to category
+                    elif is_bad and not related_to_category:
+                        st.warning("Comment is bad but not related to the selected category. Comment Kept!")
                     else:
                         st.success("Comment Kept!")
 
                     # Display the classification details
-                    #st.write(f"**Detailed Classification for '{category}' comments:**")
                     st.write(result)
                 except Exception as e:
                     st.error(f"An error occurred: {e}")
+
 
