@@ -63,17 +63,7 @@ else:
                     result, is_bad, related_to_category = classify_comment(comment, category, client)
 
                     # Display appropriate message based on classification
-                    if not related_to_category:
-                        st.success("✅ Comment Kept!")
-                    elif not is_bad:
-                        st.success("✅ Comment Kept!")
-                    elif not is_bad and related_to_category:
-                        st.success("✅ Comment Kept!")
-                    elif not is_bad and not related_to_category:
-                        st.success("✅ Comment Kept!") 
-                    elif is_bad and not related_to_category:
-                        st.success("✅ Comment Kept!")
-                    elif is_bad and related_to_category:
+                    if is_bad and related_to_category:
                         st.error("🚫Comment Archived!") # Archive only if bad and related to category
                     else:
                         st.success("✅ Comment Kept!")
