@@ -71,9 +71,21 @@ else:
         else:
             with st.spinner("Classifying comment..."):
                 try:
+                    # Get the classification result
                     result = classify_comment(comment, category, client)
-                    st.success("Classification Complete!")
+
+                    # Determine if the comment is bad and related to the selected category
+                    is_bad = "bad" in result.lower()
+                    related_to_category = category.lower() in result.lower()
+
+                    if is_bad and related_to_category:
+                        st.error("Comment Archived!")
+                    else:
+                        st.success("Comment Kept!")
+
+                    # Display the classification details
                     st.write(f"**Result for '{category}' comments:**")
                     st.write(result)
                 except Exception as e:
                     st.error(f"An error occurred: {e}")
+
