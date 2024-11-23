@@ -25,15 +25,14 @@ def classify_comment(comment, category, client):
     is_bad = "bad" in classification_and_reason.lower()
     related_to_category = category.lower() in classification_and_reason.lower()
 
-    # Return the extracted details and formatted response
     return classification_and_reason, is_bad, related_to_category
 
 
 # Streamlit app title and description
 st.title("💬 TikTok Comment Classifier")
 st.write(
-    "This is a chatbot-based app that allows you to classify TikTok comments "
-    "based on a specific category (e.g., body, makeup, personality). "
+    "This app uses AI to classify TikTok comments based on a specific category "
+    "(e.g., body, makeup, personality). Archive or keep comments based on their classification. "
     "To use this app, you need an OpenAI API key."
 )
 
@@ -46,7 +45,7 @@ else:
 
     # Dropdown menu for category selection
     category = st.selectbox(
-        "Select the type of comments to archive:",
+        "Select the type of comments to classify:",
         options=["Body", "Makeup", "Personality", "Fashion", "Performance"],
     ).lower()
 
@@ -54,7 +53,7 @@ else:
     comment = st.text_area("Enter the comment to classify:")
 
     if st.button("Classify Comment"):
-        if not category or not comment:
+        if not category or not comment.strip():
             st.warning("Please provide both a category and a comment.")
         else:
             with st.spinner("Classifying comment..."):
@@ -62,14 +61,19 @@ else:
                     # Get the classification result
                     result, is_bad, related_to_category = classify_comment(comment, category, client)
 
-                    # Display appropriate message based on classification
+                    # Determine action based on conditions
                     if is_bad and related_to_category:
-                        st.error("Comment Archived!")
+                        st.error("🚫 Comment Archived!")
+                        action = "Archived"
                     else:
-                        st.success("Comment Kept!")
+                        st.success("✅ Comment Kept!")
+                        action = "Kept"
 
-                    # Display the classification details
-                    st.write(f"**Detailed Classification for '{category}' comments:**")
-                    st.write(result)
+                    # Display the detailed classification
+                    st.write("### Classification Details:")
+                    st.write(f"- **Comment**: {comment}")
+                    st.write(f"- **Category**: {category.capitalize()}")
+                    st.write(f"- **Action**: {action}")
+                    st.write(f"- **Reason**: {result}")
                 except Exception as e:
                     st.error(f"An error occurred: {e}")
