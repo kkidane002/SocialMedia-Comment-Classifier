@@ -25,14 +25,12 @@ def classify_comment(comment, category, client):
     is_bad = "bad" in classification_and_reason.lower()
     related_to_category = category.lower() in classification_and_reason.lower()
 
-    # Return the extracted details and formatted response
     return classification_and_reason, is_bad, related_to_category
-
 
 # Streamlit app title and description
 st.title("💬 Social Media Comment Classifier")
 st.write(
-    "This is a Comment CLassifier Feature on Social media that allows you to archive bad comments"
+    "This is a Comment Classifier Feature on Social media that allows you to archive bad comments "
     "based on a specific category (e.g., body, makeup, personality). "
     "To use this feature, you need an OpenAI API key."
 )
@@ -44,33 +42,41 @@ if not openai_api_key:
 else:
     client = OpenAI(api_key=openai_api_key)
 
-    # Dropdown menu for category selection
-    category = st.selectbox(
-        "Select the type of comments to archive:",
-        options=["Body", "Makeup", "Personality", "Fashion", "Performance"],
-    ).lower()
+    # Prompt for user to select archiving mode
+    archive_mode = st.radio(
+        "Select your archiving preference:",
+        ["Archive ALL bad comments", "Keep ALL Comments", "Customize"]
+    )
 
-    # Text area for comment input
-    comment = st.text_area("Enter Sample Comment to Test Archieve:")
+    if archive_mode == "Keep ALL Comments":
+        comment = st.text_input("Enter a comment:")
+        if st.button("Submit Comment"):
+            if comment:
+                st.success("✅ Comment Kept!")
 
-    if st.button("Check Comment"):
-        if not category or not comment:
-            st.warning("Please provide both a category and a comment.")
-        else:
-            with st.spinner("Checking comment..."):
-                try:
-                    # Get the classification result
-                    result, is_bad, related_to_category = classify_comment(comment, category, client)
-
-                    # Display appropriate message based on classification
-                    if is_bad and related_to_category:
-                        st.error("🚫Comment Archived!") # Archive only if bad and related to category
+    elif archive_mode == "Archive ALL bad comments":
+        comment = st.text_input("Enter a comment:")
+        if st.button("Submit Comment"):
+            if comment:
+                with st.spinner("Checking comment..."):
+                    result, is_bad, _ = classify_comment(comment, "general", client)
+                    if is_bad:
+                        st.error("🚫 Comment Archived!")
                     else:
                         st.success("✅ Comment Kept!")
 
-                    # Display the classification details
-                    st.write(result)
-                except Exception as e:
-                    st.error(f"An error occurred: {e}")
+    elif archive_mode == "Customize":
+        category = st.selectbox(
+            "Select the type of comments to archive:",
+            options=["Body", "Makeup", "Personality", "Fashion", "Performance"],
+        ).lower()
 
-
+        comment = st.text_input("Enter a comment:")
+        if st.button("Submit Comment"):
+            if comment:
+                with st.spinner("Checking comment..."):
+                    result, is_bad, related_to_category = classify_comment(comment, category, client)
+                    if is_bad and related_to_category:
+                        st.error("🚫 Comment Archived!")
+                    else:
+                        st.success("✅ Comment Kept!")
