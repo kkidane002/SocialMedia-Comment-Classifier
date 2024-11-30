@@ -53,7 +53,7 @@ else:
         if st.button("Submit Comment"):
             if comment:
                 st.success("✅ Comment Kept!")
-
+            
     elif archive_mode == "Archive ALL bad comments":
         comment = st.text_input("Enter a comment:")
         if st.button("Submit Comment"):
@@ -64,6 +64,8 @@ else:
                         st.error("🚫 Comment Archived!")
                     else:
                         st.success("✅ Comment Kept!")
+
+                    st.write(result)
 
     elif archive_mode == "Customize":
         category = st.selectbox(
@@ -80,3 +82,6 @@ else:
                         st.error("🚫 Comment Archived!")
                     else:
                         st.success("✅ Comment Kept!")
+
+                    st.write(result)
+
