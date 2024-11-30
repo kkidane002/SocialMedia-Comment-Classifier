@@ -4,11 +4,13 @@ from openai import OpenAI
 # Define a function to classify comments based on a specific category
 def classify_comment(comment, category, client):
     prompt = (
-        f"As a TikTok comment classifier, focus on classifying '{category}' comments.\n"
-        f"Please determine if the following comment is 'good' or 'bad' in relation to '{category}', and provide a reason:\n\n"
-        f"Comment: '{comment}'\n\n"
-        "Classification and Reason:"
-    )
+    f"As a TikTok comment classifier, classify comments as 'good' or 'bad' specifically in relation to '{category}'. "
+    f"Also, indicate explicitly if the comment is relevant to '{category}' or not.\n\n"
+    f"Comment: '{comment}'\n\n"
+    "Classification and Reason:\n"
+    "Is this comment related to the category? (Yes/No):"
+)
+
 
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
@@ -23,7 +25,7 @@ def classify_comment(comment, category, client):
 
     # Determine if the comment is bad and related to the selected category
     is_bad = "bad" in classification_and_reason.lower()
-    related_to_category = category.lower() in classification_and_reason.lower()
+    related_to_category = "yes" in classification_and_reason.lower().split("is this comment related to the category?")[-1].strip()
 
     return classification_and_reason, is_bad, related_to_category
 
@@ -64,7 +66,7 @@ else:
                         st.error("🚫 Comment Archived!")
                     else:
                         st.success("✅ Comment Kept!")
-                    st.write(related_to_category)
+                 
                     st.write(result)
 
     elif archive_mode == "Customize":
