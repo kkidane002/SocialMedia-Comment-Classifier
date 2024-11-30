@@ -64,7 +64,7 @@ else:
                         st.error("🚫 Comment Archived!")
                     else:
                         st.success("✅ Comment Kept!")
-
+                    st.write(related_to_category)
                     st.write(result)
 
     elif archive_mode == "Customize":
@@ -82,6 +82,6 @@ else:
                         st.error("🚫 Comment Archived!")
                     else:
                         st.success("✅ Comment Kept!")
-
+                    st.write(related_to_category)
                     st.write(result)
 
