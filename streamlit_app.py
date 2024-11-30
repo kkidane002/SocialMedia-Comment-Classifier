@@ -3,13 +3,20 @@ from openai import OpenAI
 
 # Define a function to classify comments based on a specific category
 def classify_comment(comment, category, client):
-    prompt = (
-    f"As a TikTok comment classifier, classify comments as 'good' or 'bad' specifically in relation to '{category}'. "
-    f"Also, indicate explicitly if the comment is relevant to '{category}' or not.\n\n"
-    f"Comment: '{comment}'\n\n"
-    "Classification and Reason:\n"
-    "Is this comment related to the category? (Yes/No):"
-)
+    if category.lower() == "general":
+        prompt = (
+            f"As a TikTok comment classifier, classify the comment as 'good' or 'bad'.\n\n"
+            f"Comment: '{comment}'\n\n"
+            "Classification and Reason:"
+        )
+    else:
+        prompt = (
+            f"As a TikTok comment classifier, classify comments as 'good' or 'bad' specifically in relation to '{category}'. "
+            f"Also, indicate explicitly if the comment is relevant to '{category}' or not.\n\n"
+            f"Comment: '{comment}'\n\n"
+            "Classification and Reason:\n"
+            "Is this comment related to the category? (Yes/No):"
+        )
 
 
     response = client.chat.completions.create(
@@ -25,7 +32,11 @@ def classify_comment(comment, category, client):
 
     # Determine if the comment is bad and related to the selected category
     is_bad = "bad" in classification_and_reason.lower()
-    related_to_category = "yes" in classification_and_reason.lower().split("is this comment related to the category?")[-1].strip()
+    #related_to_category = "yes" in classification_and_reason.lower().split("is this comment related to the category?")[-1].strip()
+    if category.lower() == "general":
+        related_to_category = True
+    else:
+        related_to_category = "yes" in classification_and_reason.lower().split("is this comment related to the category?")[-1].strip()
 
     return classification_and_reason, is_bad, related_to_category
 
