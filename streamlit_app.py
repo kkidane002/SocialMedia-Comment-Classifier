@@ -1,6 +1,6 @@
 import streamlit as st
 import openai  # Correct import
-from googletrans import Translator, exceptions
+from googletrans import Translator  # No need for exceptions import
 import os
 
 # Load the OpenAI API key securely from an environment variable
@@ -18,11 +18,8 @@ else:
             # Translate using Google Translate
             translated = translator.translate(comment, src='auto', dest='en')
             return translated.text
-        except exceptions.TranslatorError as e:
-            st.error(f"Translation failed due to an error: {e}")
-            return comment  # Fallback to the original comment
-        except Exception as e:
-            st.error(f"Unexpected error during translation: {e}")
+        except Exception as e:  # Handle all general exceptions
+            st.error(f"Error occurred while translating: {e}")
             return comment  # Fallback to the original comment
 
     # Function to classify comments based on a specific category
