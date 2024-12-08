@@ -1,6 +1,5 @@
 import streamlit as st
-import openai
-from googletrans import Translator, exceptions
+from openai import OpenAI
 import os
 
 # Load the OpenAI API key securely from an environment variable
@@ -9,21 +8,22 @@ openai_api_key = os.getenv("OPENAI_API_KEY")
 if not openai_api_key:
     st.error("OpenAI API key not found. Please set it as an environment variable.")
 else:
-    openai.api_key = openai_api_key  # Set OpenAI API key
-    translator = Translator()  # Initialize the Google Translator
+    client = OpenAI(api_key=openai_api_key)
 
     # Function to translate non-English comments into English
-    def translate_to_english(comment):
-        try:
-            # Translate using Google Translate
-            translated = translator.translate(comment, src='auto', dest='en')
-            return translated.text
-        except exceptions.TranslatorError as e:
-            st.error(f"Translation failed due to an error: {e}")
-            return comment  # Fallback to the original comment
-        except Exception as e:
-            st.error(f"Unexpected error during translation: {e}")
-            return comment  # Fallback to the original comment
+    def translate_to_english(comment, client):
+        prompt = (
+            f"Translate the following text into English:\n\n"
+            f"Text: '{comment}'\n\n"
+            "Translation:"
+        )
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.2
+        )
+        translation = response.choices[0].message.content.strip()
+        return translation
 
     # Function to classify comments based on a specific category
     def classify_comment(comment, category, client):
@@ -42,7 +42,7 @@ else:
                 "Is this comment related to the category? (Yes/No):"
             )
 
-        response = openai.ChatCompletion.create(  # Correct method
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.2
@@ -87,11 +87,11 @@ else:
             if comment:
                 with st.spinner("Processing comment..."):
                     # Translate the comment
-                    translated_comment = translate_to_english(comment)
+                    translated_comment = translate_to_english(comment, client)
                     st.write(f"Translated Comment: {translated_comment}")  # Debugging
 
                     # Classify the translated comment
-                    result, is_bad, _ = classify_comment(translated_comment, "general", openai)
+                    result, is_bad, _ = classify_comment(translated_comment, "general", client)
                     st.write(f"Classification Result: {result}")  # Debugging
                     
                     if is_bad:
@@ -110,11 +110,11 @@ else:
             if comment:
                 with st.spinner("Processing comment..."):
                     # Translate the comment
-                    translated_comment = translate_to_english(comment)
+                    translated_comment = translate_to_english(comment, client)
                     st.write(f"Translated Comment: {translated_comment}")  # Debugging
 
                     # Classify the translated comment
-                    result, is_bad, related_to_category = classify_comment(translated_comment, category, openai)
+                    result, is_bad, related_to_category = classify_comment(translated_comment, category, client)
                     st.write(f"Classification Result: {result}")  # Debugging
 
                     if is_bad and related_to_category:
