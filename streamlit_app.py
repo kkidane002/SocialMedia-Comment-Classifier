@@ -10,22 +10,7 @@ if not openai_api_key:
 else:
     client = OpenAI(api_key=openai_api_key)
 
-    # Function to translate non-English comments into English
-    def translate_to_english(comment, client):
-        prompt = (
-            f"Translate the following text into English:\n\n"
-            f"Text: '{comment}'\n\n"
-            "Translation:"
-        )
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.2
-        )
-        translation = response.choices[0].message.content.strip()
-        return translation
-
-    # Function to classify comments based on a specific category
+    # Define a function to classify comments based on a specific category
     def classify_comment(comment, category, client):
         if category.lower() == "general":
             prompt = (
@@ -48,17 +33,15 @@ else:
             temperature=0.2
         )
 
+        # Extract the response
         classification_and_reason = response.choices[0].message.content.strip()
 
-        # Determine if the comment is bad
-        is_bad = any(keyword in classification_and_reason.lower() for keyword in ["bad", "offensive", "inappropriate", "harmful"])
-        
-        # Determine relevance for specific categories
+        # Determine if the comment is bad and related to the selected category
+        is_bad = "bad" in classification_and_reason.lower()
         if category.lower() == "general":
             related_to_category = True
         else:
-            relevance_part = classification_and_reason.lower().split("is this comment related to the category?")[-1].strip()
-            related_to_category = "yes" in relevance_part
+            related_to_category = "yes" in classification_and_reason.lower().split("is this comment related to the category?")[-1].strip()
 
         return classification_and_reason, is_bad, related_to_category
 
@@ -69,7 +52,7 @@ else:
         "based on a specific category (e.g., body, makeup, personality)."
     )
 
-    # User selects archiving mode
+    # Prompt for user to select archiving mode
     archive_mode = st.radio(
         "Select your archiving preference:",
         ["Archive ALL bad comments", "Keep ALL Comments", "Customize"]
@@ -80,25 +63,18 @@ else:
         if st.button("Submit Comment"):
             if comment:
                 st.success("✅ Comment Kept!")
-
+          
     elif archive_mode == "Archive ALL bad comments":
         comment = st.text_input("Enter a comment:")
         if st.button("Submit Comment"):
             if comment:
-                with st.spinner("Processing comment..."):
-                    # Translate the comment
-                    translated_comment = translate_to_english(comment, client)
-                    st.write(f"Translated Comment: {translated_comment}")  # Debugging
-
-                    # Classify the translated comment
-                    result, is_bad, _ = classify_comment(translated_comment, "general", client)
-                    st.write(f"Classification Result: {result}")  # Debugging
-                    
+                with st.spinner("Checking comment..."):
+                    result, is_bad, _ = classify_comment(comment, "general", client)
                     if is_bad:
                         st.error("🚫 Comment Archived!")
                     else:
                         st.success("✅ Comment Kept!")
-
+                
     elif archive_mode == "Customize":
         category = st.selectbox(
             "Select the type of comments to archive:",
@@ -108,15 +84,8 @@ else:
         comment = st.text_input("Enter a comment:")
         if st.button("Submit Comment"):
             if comment:
-                with st.spinner("Processing comment..."):
-                    # Translate the comment
-                    translated_comment = translate_to_english(comment, client)
-                    st.write(f"Translated Comment: {translated_comment}")  # Debugging
-
-                    # Classify the translated comment
-                    result, is_bad, related_to_category = classify_comment(translated_comment, category, client)
-                    st.write(f"Classification Result: {result}")  # Debugging
-
+                with st.spinner("Checking comment..."):
+                    result, is_bad, related_to_category = classify_comment(comment, category, client)
                     if is_bad and related_to_category:
                         st.error("🚫 Comment Archived!")
                     else:
