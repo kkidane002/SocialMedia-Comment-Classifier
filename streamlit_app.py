@@ -10,6 +10,21 @@ if not openai_api_key:
 else:
     client = OpenAI(api_key=openai_api_key)
 
+    # Define a function to translate non-English comments into English
+    def translate_to_english(comment, client):
+        prompt = (
+            f"Translate the following text into English:\n\n"
+            f"Text: '{comment}'\n\n"
+            "Translation:"
+        )
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.2
+        )
+        translation = response.choices[0].message.content.strip()
+        return translation
+
     # Define a function to classify comments based on a specific category
     def classify_comment(comment, category, client):
         if category.lower() == "general":
@@ -69,7 +84,8 @@ else:
         if st.button("Submit Comment"):
             if comment:
                 with st.spinner("Checking comment..."):
-                    result, is_bad, _ = classify_comment(comment, "general", client)
+                    translated_comment = translate_to_english(comment, client)
+                    result, is_bad, _ = classify_comment(translated_comment, "general", client)
                     if is_bad:
                         st.error("🚫 Comment Archived!")
                     else:
@@ -85,7 +101,8 @@ else:
         if st.button("Submit Comment"):
             if comment:
                 with st.spinner("Checking comment..."):
-                    result, is_bad, related_to_category = classify_comment(comment, category, client)
+                    translated_comment = translate_to_english(comment, client)
+                    result, is_bad, related_to_category = classify_comment(translated_comment, category, client)
                     if is_bad and related_to_category:
                         st.error("🚫 Comment Archived!")
                     else:
