@@ -1,6 +1,6 @@
 import streamlit as st
-from openai import OpenAI
-from googletrans import Translator
+import openai
+from googletrans import Translator, exceptions
 import os
 
 # Load the OpenAI API key securely from an environment variable
@@ -9,17 +9,21 @@ openai_api_key = os.getenv("OPENAI_API_KEY")
 if not openai_api_key:
     st.error("OpenAI API key not found. Please set it as an environment variable.")
 else:
-    client = OpenAI(api_key=openai_api_key)
+    openai.api_key = openai_api_key  # Set OpenAI API key
     translator = Translator()  # Initialize the Google Translator
 
     # Function to translate non-English comments into English
     def translate_to_english(comment):
         try:
-            translated = translator.translate(comment, src='auto', dest='en')  # Automatically detect the source language
+            # Translate using Google Translate
+            translated = translator.translate(comment, src='auto', dest='en')
             return translated.text
+        except exceptions.TranslatorError as e:
+            st.error(f"Translation failed due to an error: {e}")
+            return comment  # Fallback to the original comment
         except Exception as e:
-            st.error(f"Translation failed: {e}")
-            return comment  # Fallback to the original comment if translation fails
+            st.error(f"Unexpected error during translation: {e}")
+            return comment  # Fallback to the original comment
 
     # Function to classify comments based on a specific category
     def classify_comment(comment, category, client):
@@ -38,7 +42,7 @@ else:
                 "Is this comment related to the category? (Yes/No):"
             )
 
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(  # Correct method
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.2
@@ -87,7 +91,7 @@ else:
                     st.write(f"Translated Comment: {translated_comment}")  # Debugging
 
                     # Classify the translated comment
-                    result, is_bad, _ = classify_comment(translated_comment, "general", client)
+                    result, is_bad, _ = classify_comment(translated_comment, "general", openai)
                     st.write(f"Classification Result: {result}")  # Debugging
                     
                     if is_bad:
@@ -110,7 +114,7 @@ else:
                     st.write(f"Translated Comment: {translated_comment}")  # Debugging
 
                     # Classify the translated comment
-                    result, is_bad, related_to_category = classify_comment(translated_comment, category, client)
+                    result, is_bad, related_to_category = classify_comment(translated_comment, category, openai)
                     st.write(f"Classification Result: {result}")  # Debugging
 
                     if is_bad and related_to_category:
