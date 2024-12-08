@@ -1,5 +1,6 @@
 import streamlit as st
 from openai import OpenAI
+from googletrans import Translator
 import os
 
 # Load the OpenAI API key securely from an environment variable
@@ -9,21 +10,16 @@ if not openai_api_key:
     st.error("OpenAI API key not found. Please set it as an environment variable.")
 else:
     client = OpenAI(api_key=openai_api_key)
+    translator = Translator()  # Initialize the Google Translator
 
     # Function to translate non-English comments into English
-    def translate_to_english(comment, client):
-        prompt = (
-            f"Translate the following text into English:\n\n"
-            f"Text: '{comment}'\n\n"
-            "Translation:"
-        )
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.2
-        )
-        translation = response.choices[0].message.content.strip()
-        return translation
+    def translate_to_english(comment):
+        try:
+            translated = translator.translate(comment, src='auto', dest='en')  # Automatically detect the source language
+            return translated.text
+        except Exception as e:
+            st.error(f"Translation failed: {e}")
+            return comment  # Fallback to the original comment if translation fails
 
     # Function to classify comments based on a specific category
     def classify_comment(comment, category, client):
@@ -87,7 +83,7 @@ else:
             if comment:
                 with st.spinner("Processing comment..."):
                     # Translate the comment
-                    translated_comment = translate_to_english(comment, client)
+                    translated_comment = translate_to_english(comment)
                     st.write(f"Translated Comment: {translated_comment}")  # Debugging
 
                     # Classify the translated comment
@@ -110,7 +106,7 @@ else:
             if comment:
                 with st.spinner("Processing comment..."):
                     # Translate the comment
-                    translated_comment = translate_to_english(comment, client)
+                    translated_comment = translate_to_english(comment)
                     st.write(f"Translated Comment: {translated_comment}")  # Debugging
 
                     # Classify the translated comment
